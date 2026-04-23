@@ -25,6 +25,14 @@
 }
 
 /* =====================================================
+   HEADER
+   ===================================================== */
+
+.header-section {
+  box-shadow: 0 4px 6px -2px rgba(26, 35, 64, 0.12);
+}
+
+/* =====================================================
    HERO — Full-bleed, edge-to-edge
    ===================================================== */
 
@@ -34,6 +42,7 @@
   padding-inline-start: 0 !important;
   padding-inline-end: 0 !important;
 }
+
 
 /* Large editorial serif on any heading rendered inside the hero content blocks */
 .hero .hero__content-wrapper .text-rte h1,
