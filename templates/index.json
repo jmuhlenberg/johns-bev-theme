@@ -88,7 +88,7 @@
         "button_H9gpTf"
       ],
       "custom_css": [
-        "img {}"
+        "container{padding: 10px;}"
       ],
       "name": "t:names.hero",
       "settings": {
