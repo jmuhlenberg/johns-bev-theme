@@ -127,6 +127,7 @@
         "cat_beer": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_29_13_AM.png",
             "label": "Beer",
             "link": "/collections/beer"
           }
@@ -134,6 +135,7 @@
         "cat_wine": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_30_15_AM.png",
             "label": "Wine",
             "link": "/collections/wine"
           }
@@ -141,6 +143,7 @@
         "cat_liquor": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_49_32_AM.png",
             "label": "Liquor",
             "link": "/collections/liquor"
           }
@@ -148,6 +151,7 @@
         "cat_rtd": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_37_10_AM.png",
             "label": "Ready to Drink",
             "link": "/collections/ready-to-drink"
           }
@@ -155,6 +159,7 @@
         "cat_na": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_52_19_AM.png",
             "label": "Non-Alcoholic",
             "link": "/collections/non-alcoholic"
           }
