@@ -1,0 +1,167 @@
+{%- doc -%}
+  JLA Value Proposition Band
+  Full-width deep navy (#1A2340) strip with three columns.
+  Each column: gold SVG icon + cream headline + optional subtext.
+  Sits between the category grid and the featured products section.
+{%- enddoc -%}
+
+<section
+  id="JLAValueBand-{{ section.id }}"
+  class="jla-value-band"
+>
+  <div class="jla-value-band__inner page-width">
+
+    {%- comment -%} Column 1 — Subscribe & Save {%- endcomment -%}
+    <div class="jla-value-band__item">
+      <div class="jla-value-band__icon" aria-hidden="true">
+        {%- comment -%} Tag / label icon {%- endcomment -%}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+          <line x1="7" y1="7" x2="7.01" y2="7"/>
+        </svg>
+      </div>
+      <p class="jla-value-band__text">{{ section.settings.value_1 }}</p>
+    </div>
+
+    <div class="jla-value-band__divider" aria-hidden="true"></div>
+
+    {%- comment -%} Column 2 — Free Delivery {%- endcomment -%}
+    <div class="jla-value-band__item">
+      <div class="jla-value-band__icon" aria-hidden="true">
+        {%- comment -%} Delivery truck icon {%- endcomment -%}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="3" width="15" height="13" rx="1"/>
+          <path d="M16 8h4l3 5v4h-7V8z"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/>
+          <circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+      </div>
+      <p class="jla-value-band__text">{{ section.settings.value_2 }}</p>
+    </div>
+
+    <div class="jla-value-band__divider" aria-hidden="true"></div>
+
+    {%- comment -%} Column 3 — Cancel Anytime {%- endcomment -%}
+    <div class="jla-value-band__item">
+      <div class="jla-value-band__icon" aria-hidden="true">
+        {%- comment -%} Circle check icon {%- endcomment -%}
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="8 12 10.5 14.5 16 9"/>
+        </svg>
+      </div>
+      <p class="jla-value-band__text">{{ section.settings.value_3 }}</p>
+    </div>
+
+  </div>
+</section>
+
+{% stylesheet %}
+  .jla-value-band {
+    background-color: #1A2340;
+    width: 100%;
+    padding-block: 2.25rem;
+  }
+
+  .jla-value-band__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding-inline: var(--page-width-padding, 1.5rem);
+    gap: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .jla-value-band__inner {
+      flex-wrap: nowrap;
+    }
+  }
+
+  .jla-value-band__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-align: center;
+    padding: 1rem 1.5rem;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  /* Gold icon */
+  .jla-value-band__icon {
+    width: 2rem;
+    height: 2rem;
+    color: #9A7C3F;
+    flex-shrink: 0;
+  }
+
+  .jla-value-band__icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Cream body text */
+  .jla-value-band__text {
+    font-family: var(--font-body--family);
+    font-size: clamp(0.8rem, 1.4vw, 0.9375rem);
+    font-weight: 500;
+    color: #F5F0E8;
+    letter-spacing: 0.04em;
+    margin: 0;
+    line-height: 1.4;
+  }
+
+  /* Thin vertical rule between columns — desktop only */
+  .jla-value-band__divider {
+    display: none;
+    width: 1px;
+    height: 2.5rem;
+    background-color: rgba(245, 240, 232, 0.18);
+    flex-shrink: 0;
+  }
+
+  @media screen and (min-width: 750px) {
+    .jla-value-band__divider {
+      display: block;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Value Band",
+  "tag": "section",
+  "class": "jla-value-band-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "value_1",
+      "label": "Value prop 1",
+      "default": "Subscribe & Save 15%"
+    },
+    {
+      "type": "text",
+      "id": "value_2",
+      "label": "Value prop 2",
+      "default": "Free Delivery on Every Order"
+    },
+    {
+      "type": "text",
+      "id": "value_3",
+      "label": "Value prop 3",
+      "default": "Cancel Anytime"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Value Band"
+    }
+  ]
+}
+{% endschema %}

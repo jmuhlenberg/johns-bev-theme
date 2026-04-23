@@ -1,0 +1,103 @@
+/* John's Liquid Assets — Custom Theme Styles
+   Palette: #F5F0E8 cream | #1A2340 navy | #9A7C3F gold */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,800;1,400&display=swap');
+
+/* =====================================================
+   BRAND TOKENS
+   ===================================================== */
+
+:root {
+  --jla-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --jla-cream: #F5F0E8;
+  --jla-navy: #1A2340;
+  --jla-gold: #9A7C3F;
+  --jla-gold-dark: #7d6433;
+
+  /* Override Horizon's heading font with editorial serif */
+  --font-heading--family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-heading--style: normal;
+  --font-heading--weight: 700;
+
+  /* Sharp corners — overrides Horizon CSS vars driven by settings */
+  --style-border-radius-buttons-primary: 0px;
+  --style-border-radius-buttons-secondary: 0px;
+}
+
+/* =====================================================
+   HERO — Full-bleed, edge-to-edge
+   ===================================================== */
+
+/* Remove inner content padding so text sits flush with viewport edge on small screens
+   and the content wrapper controls its own inset via section_width */
+.hero .hero__container.section--full-width {
+  padding-inline-start: 0 !important;
+  padding-inline-end: 0 !important;
+}
+
+/* Large editorial serif on any heading rendered inside the hero content blocks */
+.hero .hero__content-wrapper .text-rte h1,
+.hero .hero__content-wrapper .text-rte h2 {
+  font-family: var(--jla-serif) !important;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+
+.hero .hero__content-wrapper .text-rte h1 {
+  font-size: clamp(2.75rem, 7vw, 5.5rem) !important;
+  font-weight: 800;
+}
+
+.hero .hero__content-wrapper .text-rte h2 {
+  font-size: clamp(2rem, 5vw, 4rem) !important;
+  font-weight: 700;
+}
+
+/* Subheading / tagline rendered as a <p> inside its own text block */
+.hero .hero__content-wrapper .jla-hero-sub .text-rte p {
+  font-family: var(--jla-serif) !important;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(1.05rem, 2.2vw, 1.45rem) !important;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  opacity: 0.9;
+  margin-block: 0;
+}
+
+/* =====================================================
+   PRODUCT CARD — Hover lift
+   ===================================================== */
+
+product-card {
+  display: block;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 16px 40px rgba(26, 35, 64, 0.13);
+}
+
+/* =====================================================
+   TYPOGRAPHY — Editorial headings & generous spacing
+   ===================================================== */
+
+/* All display-level headings use the editorial serif */
+h1, h2, h3, h4 {
+  font-family: var(--jla-serif);
+}
+
+/* Section overlines / labels — spaced uppercase */
+h5, h6 {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Featured collection section heading */
+.product-list .text-rte h3,
+.product-list .text-rte h4 {
+  font-family: var(--jla-serif);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

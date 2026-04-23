@@ -1,0 +1,255 @@
+{%- doc -%}
+  JLA Category Navigation Grid
+  Renders up to 6 category tiles in a 3×2 grid (desktop) / 2×3 (mobile).
+  Each tile has a background image, dark gradient overlay, and a centered serif label.
+  Hover: overlay lightens, label scales up, image zooms slightly.
+{%- enddoc -%}
+
+<section
+  id="JLACategoryGrid-{{ section.id }}"
+  class="jla-category-grid color-{{ section.settings.color_scheme }}"
+>
+  <div class="jla-category-grid__inner page-width">
+    {%- if section.settings.heading != blank -%}
+      <h2 class="jla-category-grid__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    <div class="jla-category-grid__grid">
+      {%- for block in section.blocks -%}
+        {%- if block.type == 'category_tile' -%}
+          <a
+            href="{{ block.settings.link | default: '#' }}"
+            class="jla-category-grid__tile"
+            aria-label="{{ block.settings.label }}"
+            {{ block.shopify_attributes }}
+          >
+            <div class="jla-category-grid__image-wrapper">
+              {%- if block.settings.image != blank -%}
+                {{
+                  block.settings.image
+                  | image_url: width: 800
+                  | image_tag:
+                    class: 'jla-category-grid__img',
+                    widths: '400, 600, 800',
+                    sizes: '(min-width: 750px) 33vw, 50vw',
+                    loading: 'lazy',
+                    alt: block.settings.label
+                }}
+              {%- else -%}
+                {{ 'collection-apparel-1' | placeholder_svg_tag: 'jla-category-grid__img jla-category-grid__img--placeholder' }}
+              {%- endif -%}
+            </div>
+            <div class="jla-category-grid__overlay" aria-hidden="true"></div>
+            <span class="jla-category-grid__label">{{ block.settings.label }}</span>
+          </a>
+        {%- endif -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% stylesheet %}
+  .jla-category-grid {
+    padding-block: 3rem 3.5rem;
+  }
+
+  .jla-category-grid__inner {
+    padding-inline: var(--page-width-padding, 1.5rem);
+  }
+
+  .jla-category-grid__heading {
+    font-family: var(--jla-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    margin-block-end: 1.75rem;
+    color: var(--color-foreground-heading);
+  }
+
+  /* Mobile: 2-column grid, last tile spans full width if it lands alone */
+  .jla-category-grid__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  @media screen and (max-width: 749px) {
+    .jla-category-grid__tile:last-child:nth-child(odd) {
+      grid-column: span 2;
+    }
+  }
+
+  /* Desktop: 6-unit grid — all tiles span 2 columns (equal 1/3 width).
+     Bottom 2 tiles are placed explicitly to center them:
+     1 empty col | tile4 (cols 2-3) | tile5 (cols 4-5) | 1 empty col */
+  @media screen and (min-width: 750px) {
+    .jla-category-grid__grid {
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    .jla-category-grid__tile {
+      grid-column: span 2;
+    }
+
+    .jla-category-grid__tile:nth-child(4) {
+      grid-column: 2 / 4;
+    }
+
+    .jla-category-grid__tile:nth-child(5) {
+      grid-column: 4 / 6;
+    }
+  }
+
+  /* Each tile is a positioned link with overflow hidden for the zoom effect */
+  .jla-category-grid__tile {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    text-decoration: none;
+    cursor: pointer;
+    background-color: #2a3550;
+  }
+
+  @media screen and (min-width: 750px) {
+    .jla-category-grid__tile {
+      aspect-ratio: 4 / 5;
+    }
+  }
+
+  .jla-category-grid__image-wrapper {
+    position: absolute;
+    inset: 0;
+  }
+
+  .jla-category-grid__img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    display: block;
+  }
+
+  /* Placeholder SVG fill */
+  .jla-category-grid__img--placeholder {
+    background-color: #2a3550;
+    color: #F5F0E840;
+  }
+
+  /* Dark gradient overlay — heavier at bottom for legible text */
+  .jla-category-grid__overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to top,
+      rgba(10, 15, 30, 0.78) 0%,
+      rgba(10, 15, 30, 0.38) 45%,
+      rgba(10, 15, 30, 0.12) 100%
+    );
+    transition: background 0.35s ease;
+  }
+
+  /* Category label — serif, cream, centered at tile bottom */
+  .jla-category-grid__label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.25rem 0.75rem;
+    font-family: var(--jla-serif, 'Playfair Display', Georgia, serif);
+    font-size: clamp(0.875rem, 1.6vw, 1.15rem);
+    font-weight: 700;
+    color: #F5F0E8;
+    text-align: center;
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    transform-origin: bottom center;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+  }
+
+  /* Hover states */
+  .jla-category-grid__tile:hover .jla-category-grid__overlay {
+    background: linear-gradient(
+      to top,
+      rgba(10, 15, 30, 0.55) 0%,
+      rgba(10, 15, 30, 0.2) 45%,
+      rgba(10, 15, 30, 0.04) 100%
+    );
+  }
+
+  .jla-category-grid__tile:hover .jla-category-grid__label {
+    transform: scale(1.08);
+  }
+
+  .jla-category-grid__tile:hover .jla-category-grid__img {
+    transform: scale(1.05);
+  }
+
+  /* Focus ring for keyboard accessibility */
+  .jla-category-grid__tile:focus-visible {
+    outline: 2px solid #9A7C3F;
+    outline-offset: 3px;
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Category Grid",
+  "tag": "section",
+  "class": "jla-category-grid-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Section heading",
+      "default": "Shop by Category"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "default": "scheme-1",
+      "label": "Color scheme"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "category_tile",
+      "name": "Category tile",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Background image"
+        },
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Category name",
+          "default": "Category"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Collection link"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Category Grid",
+      "blocks": [
+        { "type": "category_tile", "settings": { "label": "Wine", "link": "/collections/wine" } },
+        { "type": "category_tile", "settings": { "label": "Beer", "link": "/collections/beer" } },
+        { "type": "category_tile", "settings": { "label": "Liquor", "link": "/collections/liquor" } },
+        { "type": "category_tile", "settings": { "label": "Pre-Mixed Cocktails", "link": "/collections/pre-mixed-cocktails" } },
+        { "type": "category_tile", "settings": { "label": "Non-Alcoholic Spirits", "link": "/collections/non-alcoholic-spirits" } },
+        { "type": "category_tile", "settings": { "label": "Social Tonics", "link": "/collections/social-tonics" } }
+      ]
+    }
+  ]
+}
+{% endschema %}
