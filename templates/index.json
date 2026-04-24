@@ -153,7 +153,7 @@
           "settings": {
             "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_37_10_AM.png",
             "label": "Ready to Drink",
-            "link": "/collections/ready-to-drink"
+            "link": "shopify://collections/ready-to-drink"
           }
         },
         "cat_na": {
@@ -161,7 +161,7 @@
           "settings": {
             "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_52_19_AM.png",
             "label": "Non-Alcoholic",
-            "link": "/collections/non-alcoholic"
+            "link": "shopify://collections/non-alcoholic"
           }
         }
       },
