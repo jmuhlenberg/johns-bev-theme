@@ -145,7 +145,7 @@
           "settings": {
             "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_49_32_AM.png",
             "label": "Liquor",
-            "link": "/collections/liquor"
+            "link": "shopify://collections/liquor"
           }
         },
         "cat_rtd": {
