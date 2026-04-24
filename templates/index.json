@@ -129,7 +129,7 @@
           "settings": {
             "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_29_13_AM.png",
             "label": "Beer",
-            "link": "/collections/beer"
+            "link": "shopify://collections/all-beer"
           }
         },
         "cat_wine": {
@@ -137,7 +137,7 @@
           "settings": {
             "image": "shopify://shop_images/ChatGPT_Image_Apr_23_2026_10_30_15_AM.png",
             "label": "Wine",
-            "link": "/collections/wine"
+            "link": "shopify://collections/all-wine"
           }
         },
         "cat_liquor": {
