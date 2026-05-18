@@ -11,31 +11,6 @@
   "sections": {
     "17791374670241207e": {
       "type": "_blocks",
-      "blocks": {
-        "ai_gen_block_7bfe650_ezkz3B": {
-          "type": "ai_gen_block_7bfe650",
-          "settings": {
-            "milestone_1_items": 2,
-            "milestone_1_discount": 5,
-            "milestone_2_items": 3,
-            "milestone_2_discount": 10,
-            "milestone_3_items": 4,
-            "milestone_3_discount": 15,
-            "congrats_message": "🎉 Maximum discount unlocked! You're saving 15%",
-            "background_color": "#f5f0e8",
-            "text_color": "#1a2340",
-            "bar_background_color": "#ece7d9",
-            "bar_fill_color": "#9a7c3f",
-            "milestone_inactive_color": "#ece7d9",
-            "milestone_active_color": "#9a7c3f",
-            "congrats_color": "#9a7c3f"
-          },
-          "blocks": {}
-        }
-      },
-      "block_order": [
-        "ai_gen_block_7bfe650_ezkz3B"
-      ],
       "settings": {
         "content_direction": "column",
         "vertical_on_mobile": true,
