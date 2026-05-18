@@ -111,8 +111,8 @@
     {%- if product.selling_plan_groups != blank and onboarding == false -%}
       {%- liquid
         assign target_numbers = '2,3,4,6' | split: ','
-        assign matched_ids = ''
-        assign matched_labels = ''
+        assign plan_pairs = ''
+        assign used_ids = '|'
         for n in target_numbers
           assign found_plan_id = ''
           assign pattern_a = ' ' | append: n | append: ' week'
@@ -120,28 +120,34 @@
           for group in product.selling_plan_groups
             for plan in group.selling_plans
               if found_plan_id == ''
-                assign haystack = ' ' | append: plan.name
-                for opt in plan.options
-                  assign haystack = haystack | append: ' ' | append: opt.value
-                endfor
-                assign haystack = haystack | downcase
-                if haystack contains pattern_a or haystack contains pattern_b
-                  assign found_plan_id = plan.id | append: ''
-                endif
+                assign id_marker = '|' | append: plan.id | append: '|'
+                unless used_ids contains id_marker
+                  assign haystack = ' ' | append: plan.name
+                  for opt in plan.options
+                    assign haystack = haystack | append: ' ' | append: opt.value
+                  endfor
+                  assign haystack = haystack | downcase
+                  if haystack contains pattern_a or haystack contains pattern_b
+                    assign found_plan_id = plan.id | append: ''
+                  endif
+                endunless
               endif
             endfor
           endfor
           if found_plan_id != ''
-            assign matched_ids = matched_ids | append: found_plan_id | append: '|'
-            assign matched_labels = matched_labels | append: n | append: ' weeks|'
+            assign used_ids = used_ids | append: found_plan_id | append: '|'
+            if plan_pairs != ''
+              assign plan_pairs = plan_pairs | append: ';'
+            endif
+            assign plan_pairs = plan_pairs | append: found_plan_id | append: ',' | append: n | append: ' weeks'
           endif
         endfor
-        assign matched_ids = matched_ids | split: '|'
-        assign matched_labels = matched_labels | split: '|'
-        assign default_plan_id = matched_ids.first
+        assign plan_pair_list = plan_pairs | split: ';'
+        assign first_pair_parts = plan_pair_list.first | split: ','
+        assign default_plan_id = first_pair_parts.first
         assign initial_variant = product.selected_or_first_available_variant
       -%}
-      {%- if matched_ids.size > 0 -%}
+      {%- if plan_pairs != '' -%}
       <div
         class="product-card__subscription"
         data-subscription-toggle
@@ -196,8 +202,11 @@
           aria-label="Subscription frequency"
           hidden
         >
-          {%- for id in matched_ids -%}
-            <option value="{{ id }}">{{ matched_labels[forloop.index0] }}</option>
+          {%- for pair in plan_pair_list -%}
+            {%- assign parts = pair | split: ',' -%}
+            {%- if parts.size == 2 -%}
+              <option value="{{ parts[0] }}">{{ parts[1] }}</option>
+            {%- endif -%}
           {%- endfor -%}
         </select>
 
