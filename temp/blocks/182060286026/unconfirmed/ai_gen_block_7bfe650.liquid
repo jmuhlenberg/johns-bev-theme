@@ -1,6 +1,382 @@
+{% doc %}
+  @prompt
+    I'd like to add a cart progress bar to my coffee-collection page template. The bar should read the current number of items in the customer's cart and display progress toward three discount milestones, which are automatically applied via a Recharge-owned Shopify automatic discount:
+    
+    2 or more items → 5% off
+    3 or more items → 10% off
+    4 or more items → 15% off
+    
+    Please add this as a new section in the coffee-collection page template, placed before the Collection heading. The bar should update dynamically as items are added to or removed from the cart without requiring a page reload.
+    My theme is Horizon. Please use Horizon's existing CSS variables and design tokens so the bar matches the theme's typography, colors, and spacing. Build it using a Liquid section file with accompanying JavaScript that listens to Shopify's cart:updated and sections:load events (or polls the Cart API at /cart.js) to keep the item count live.
+    The section should:
+    
+    Show a segmented or stepped progress bar with three labeled milestones (5%, 10%, 15%)
+    Display a short message above or below the bar indicating how many more items are needed to reach the next tier (e.g. "Add 1 more item to unlock 10% off")
+    Show a congratulatory message once the customer reaches 4+ items and the maximum discount is unlocked
+    Not display any discount codes — the discount is applied automatically by Recharge
+{% enddoc %}
+{% assign ai_gen_id = block.id | replace: '_', '' | downcase %}
+
+{% style %}
+  .ai-cart-progress-{{ ai_gen_id }} {
+    display: block;
+    width: 100%;
+    padding: 24px 0;
+    background-color: {{ block.settings.background_color }};
+  }
+
+  .ai-cart-progress-container-{{ ai_gen_id }} {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  .ai-cart-progress-message-{{ ai_gen_id }} {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 16px;
+    color: {{ block.settings.text_color }};
+    font-family: var(--font-subheading-family);
+    font-weight: var(--font-subheading-weight);
+  }
+
+  .ai-cart-progress-bar-wrapper-{{ ai_gen_id }} {
+    position: relative;
+    width: 100%;
+    height: 12px;
+    background-color: {{ block.settings.bar_background_color }};
+    border-radius: 100px;
+    overflow: hidden;
+  }
+
+  .ai-cart-progress-bar-fill-{{ ai_gen_id }} {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background-color: {{ block.settings.bar_fill_color }};
+    border-radius: 100px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .ai-cart-progress-milestones-{{ ai_gen_id }} {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
+  }
+
+  .ai-cart-progress-milestone-{{ ai_gen_id }} {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    flex: 1;
+  }
+
+  .ai-cart-progress-milestone-{{ ai_gen_id }}:first-child {
+    align-items: flex-start;
+  }
+
+  .ai-cart-progress-milestone-{{ ai_gen_id }}:last-child {
+    align-items: flex-end;
+  }
+
+  .ai-cart-progress-milestone-dot-{{ ai_gen_id }} {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background-color: {{ block.settings.milestone_inactive_color }};
+    border: 2px solid {{ block.settings.bar_background_color }};
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-bottom: 8px;
+  }
+
+  .ai-cart-progress-milestone-{{ ai_gen_id }}.active .ai-cart-progress-milestone-dot-{{ ai_gen_id }} {
+    background-color: {{ block.settings.milestone_active_color }};
+    transform: scale(1.2);
+  }
+
+  .ai-cart-progress-milestone-label-{{ ai_gen_id }} {
+    font-size: 12px;
+    color: {{ block.settings.text_color }};
+    font-family: var(--font-body-family);
+    text-align: center;
+    opacity: 0.7;
+  }
+
+  .ai-cart-progress-milestone-{{ ai_gen_id }}.active .ai-cart-progress-milestone-label-{{ ai_gen_id }} {
+    opacity: 1;
+    font-weight: 600;
+  }
+
+  .ai-cart-progress-congrats-{{ ai_gen_id }} {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 16px;
+    color: {{ block.settings.congrats_color }};
+    font-family: var(--font-subheading-family);
+    font-weight: var(--font-subheading-weight);
+    display: none;
+  }
+
+  .ai-cart-progress-congrats-{{ ai_gen_id }}.show {
+    display: block;
+  }
+
+  @media screen and (max-width: 749px) {
+    .ai-cart-progress-milestone-label-{{ ai_gen_id }} {
+      font-size: 10px;
+    }
+
+    .ai-cart-progress-message-{{ ai_gen_id }} {
+      font-size: 14px;
+    }
+  }
+{% endstyle %}
+
+<cart-progress-bar-{{ ai_gen_id }}
+  class="ai-cart-progress-{{ ai_gen_id }}"
+  data-milestone-1="{{ block.settings.milestone_1_items }}"
+  data-milestone-2="{{ block.settings.milestone_2_items }}"
+  data-milestone-3="{{ block.settings.milestone_3_items }}"
+  {{ block.shopify_attributes }}
+>
+  <div class="ai-cart-progress-container-{{ ai_gen_id }}">
+    <div class="ai-cart-progress-message-{{ ai_gen_id }}" data-message></div>
+
+    <div class="ai-cart-progress-bar-wrapper-{{ ai_gen_id }}">
+      <div class="ai-cart-progress-bar-fill-{{ ai_gen_id }}" data-fill></div>
+    </div>
+
+    <div class="ai-cart-progress-milestones-{{ ai_gen_id }}">
+      <div class="ai-cart-progress-milestone-{{ ai_gen_id }}" data-milestone="1">
+        <div class="ai-cart-progress-milestone-dot-{{ ai_gen_id }}"></div>
+        <div class="ai-cart-progress-milestone-label-{{ ai_gen_id }}">{{ block.settings.milestone_1_items }} items<br>{{ block.settings.milestone_1_discount }}% off</div>
+      </div>
+      <div class="ai-cart-progress-milestone-{{ ai_gen_id }}" data-milestone="2">
+        <div class="ai-cart-progress-milestone-dot-{{ ai_gen_id }}"></div>
+        <div class="ai-cart-progress-milestone-label-{{ ai_gen_id }}">{{ block.settings.milestone_2_items }} items<br>{{ block.settings.milestone_2_discount }}% off</div>
+      </div>
+      <div class="ai-cart-progress-milestone-{{ ai_gen_id }}" data-milestone="3">
+        <div class="ai-cart-progress-milestone-dot-{{ ai_gen_id }}"></div>
+        <div class="ai-cart-progress-milestone-label-{{ ai_gen_id }}">{{ block.settings.milestone_3_items }}+ items<br>{{ block.settings.milestone_3_discount }}% off</div>
+      </div>
+    </div>
+
+    <div class="ai-cart-progress-congrats-{{ ai_gen_id }}" data-congrats>
+      {{ block.settings.congrats_message }}
+    </div>
+  </div>
+</cart-progress-bar-{{ ai_gen_id }}>
+
+<script>
+  (function() {
+    class CartProgressBar{{ ai_gen_id }} extends HTMLElement {
+      constructor() {
+        super();
+        this.milestone1 = parseInt(this.dataset.milestone1);
+        this.milestone2 = parseInt(this.dataset.milestone2);
+        this.milestone3 = parseInt(this.dataset.milestone3);
+        this.messageEl = this.querySelector('[data-message]');
+        this.fillEl = this.querySelector('[data-fill]');
+        this.congratsEl = this.querySelector('[data-congrats]');
+        this.milestoneEls = this.querySelectorAll('[data-milestone]');
+      }
+
+      connectedCallback() {
+        this.updateProgress();
+        document.addEventListener('cart:updated', () => this.updateProgress());
+        document.addEventListener('shopify:section:load', () => this.updateProgress());
+      }
+
+      async updateProgress() {
+        try {
+          const response = await fetch('/cart.js');
+          const cart = await response.json();
+          const itemCount = cart.item_count;
+
+          this.updateUI(itemCount);
+        } catch (error) {
+          console.error('Error fetching cart:', error);
+        }
+      }
+
+      updateUI(itemCount) {
+        let progressPercent = 0;
+        let message = '';
+        let activeMilestone = 0;
+
+        if (itemCount < this.milestone1) {
+          const needed = this.milestone1 - itemCount;
+          message = `Add ${needed} more ${needed === 1 ? 'item' : 'items'} to unlock 5% off`;
+          progressPercent = (itemCount / this.milestone1) * 33.33;
+        } else if (itemCount < this.milestone2) {
+          const needed = this.milestone2 - itemCount;
+          message = `Add ${needed} more ${needed === 1 ? 'item' : 'items'} to unlock 10% off`;
+          progressPercent = 33.33 + ((itemCount - this.milestone1) / (this.milestone2 - this.milestone1)) * 33.33;
+          activeMilestone = 1;
+        } else if (itemCount < this.milestone3) {
+          const needed = this.milestone3 - itemCount;
+          message = `Add ${needed} more ${needed === 1 ? 'item' : 'items'} to unlock 15% off`;
+          progressPercent = 66.66 + ((itemCount - this.milestone2) / (this.milestone3 - this.milestone2)) * 33.34;
+          activeMilestone = 2;
+        } else {
+          message = '';
+          progressPercent = 100;
+          activeMilestone = 3;
+          this.congratsEl.classList.add('show');
+        }
+
+        if (itemCount < this.milestone3) {
+          this.congratsEl.classList.remove('show');
+        }
+
+        this.messageEl.textContent = message;
+        this.fillEl.style.width = `${progressPercent}%`;
+
+        this.milestoneEls.forEach((el, index) => {
+          if (index < activeMilestone) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+      }
+    }
+
+    customElements.define('cart-progress-bar-{{ ai_gen_id }}', CartProgressBar{{ ai_gen_id }});
+  })();
+</script>
+
 {% schema %}
- {
-   "name": "AI_Block",
-   "tag": "shopify-ai-generated-block"
- }
+{
+  "name": "Cart progress bar",
+  "tag": null,
+  "settings": [
+    {
+      "type": "header",
+      "content": "Milestones"
+    },
+    {
+      "type": "range",
+      "id": "milestone_1_items",
+      "label": "First milestone items",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 2
+    },
+    {
+      "type": "range",
+      "id": "milestone_1_discount",
+      "label": "First milestone discount",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "default": 5
+    },
+    {
+      "type": "range",
+      "id": "milestone_2_items",
+      "label": "Second milestone items",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "milestone_2_discount",
+      "label": "Second milestone discount",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "default": 10
+    },
+    {
+      "type": "range",
+      "id": "milestone_3_items",
+      "label": "Third milestone items",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "milestone_3_discount",
+      "label": "Third milestone discount",
+      "min": 1,
+      "max": 50,
+      "step": 1,
+      "unit": "%",
+      "default": 15
+    },
+    {
+      "type": "header",
+      "content": "Messages"
+    },
+    {
+      "type": "text",
+      "id": "congrats_message",
+      "label": "Congratulations message",
+      "default": "🎉 Maximum discount unlocked! You're saving 15%"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "#f5f0e8"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1a2340"
+    },
+    {
+      "type": "color",
+      "id": "bar_background_color",
+      "label": "Bar background",
+      "default": "#ece7d9"
+    },
+    {
+      "type": "color",
+      "id": "bar_fill_color",
+      "label": "Bar fill",
+      "default": "#9a7c3f"
+    },
+    {
+      "type": "color",
+      "id": "milestone_inactive_color",
+      "label": "Milestone inactive",
+      "default": "#ece7d9"
+    },
+    {
+      "type": "color",
+      "id": "milestone_active_color",
+      "label": "Milestone active",
+      "default": "#9a7c3f"
+    },
+    {
+      "type": "color",
+      "id": "congrats_color",
+      "label": "Congratulations text",
+      "default": "#9a7c3f"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart progress bar"
+    }
+  ]
+}
 {% endschema %}
