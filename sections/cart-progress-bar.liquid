@@ -1,0 +1,315 @@
+{%- doc -%}
+  Cart Progress Bar
+  Shows a 3-milestone progress bar driven by the count of subscription
+  line items currently in the cart (line items with selling_plan_allocation).
+  Discounts are applied automatically by Recharge; this bar is informational.
+{%- enddoc -%}
+
+<section
+  id="CartProgressBar-{{ section.id }}"
+  class="cart-progress-bar"
+  data-cart-progress-bar
+  data-max-items="4"
+>
+  <div class="cart-progress-bar__inner page-width">
+    <div class="cart-progress-bar__track" aria-hidden="true">
+      <div class="cart-progress-bar__fill" data-progress-fill style="width: 0%"></div>
+
+      <div class="cart-progress-bar__markers">
+        <div class="cart-progress-bar__marker" data-marker="2" style="left: 50%">
+          <span class="cart-progress-bar__dot"></span>
+          <span class="cart-progress-bar__label">2 items &ndash; 5% off</span>
+        </div>
+        <div class="cart-progress-bar__marker" data-marker="3" style="left: 75%">
+          <span class="cart-progress-bar__dot"></span>
+          <span class="cart-progress-bar__label">3 items &ndash; 10% off</span>
+        </div>
+        <div class="cart-progress-bar__marker" data-marker="4" style="left: 100%">
+          <span class="cart-progress-bar__dot"></span>
+          <span class="cart-progress-bar__label">4+ items &ndash; 15% off</span>
+        </div>
+      </div>
+    </div>
+
+    <p
+      class="cart-progress-bar__message"
+      data-progress-message
+      role="status"
+      aria-live="polite"
+    >
+      {{ section.settings.starting_message }}
+    </p>
+  </div>
+</section>
+
+{% stylesheet %}
+  .cart-progress-bar {
+    width: 100%;
+    background-color: #f5f0e8;
+    padding-block: 1.75rem 2.25rem;
+  }
+
+  .cart-progress-bar__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding-inline: var(--page-width-padding, 1.5rem);
+  }
+
+  .cart-progress-bar__track {
+    position: relative;
+    height: 8px;
+    background-color: #ece7d9;
+    border-radius: 999px;
+    margin-block-end: 3rem;
+  }
+
+  .cart-progress-bar__fill {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    height: 100%;
+    background-color: #9a7c3f;
+    border-radius: 999px;
+    width: 0%;
+    transition: width 450ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .cart-progress-bar__markers {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+
+  .cart-progress-bar__marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cart-progress-bar__dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: #ece7d9;
+    border: 2px solid #c7bfaa;
+    box-shadow: 0 0 0 3px #f5f0e8;
+    transition: background-color 250ms ease, border-color 250ms ease, transform 250ms ease;
+  }
+
+  .cart-progress-bar__marker[data-state="active"] .cart-progress-bar__dot,
+  .cart-progress-bar__marker[data-state="unlocked"] .cart-progress-bar__dot {
+    background-color: #9a7c3f;
+    border-color: #9a7c3f;
+  }
+
+  .cart-progress-bar__marker[data-state="active"] .cart-progress-bar__dot {
+    transform: scale(1.2);
+  }
+
+  .cart-progress-bar__label {
+    position: absolute;
+    top: calc(100% + 0.65rem);
+    white-space: nowrap;
+    font-family: var(--font-body--family);
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
+    color: #1a2340;
+    opacity: 0.7;
+    transition: opacity 250ms ease, font-weight 250ms ease;
+  }
+
+  .cart-progress-bar__marker[data-state="active"] .cart-progress-bar__label,
+  .cart-progress-bar__marker[data-state="unlocked"] .cart-progress-bar__label {
+    opacity: 1;
+    font-weight: 600;
+    color: #9a7c3f;
+  }
+
+  /* The 4+ marker sits at the very right edge — pull its label inward so
+     it doesn't overflow the track. */
+  .cart-progress-bar__marker[data-marker="4"] .cart-progress-bar__label {
+    transform: translateX(-40%);
+  }
+  .cart-progress-bar__marker[data-marker="2"] .cart-progress-bar__label,
+  .cart-progress-bar__marker[data-marker="3"] .cart-progress-bar__label {
+    transform: translateX(0);
+  }
+
+  .cart-progress-bar__message {
+    text-align: center;
+    margin: 0;
+    font-family: var(--font-body--family);
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #1a2340;
+    letter-spacing: 0.02em;
+  }
+
+  .cart-progress-bar[data-state="maxed"] .cart-progress-bar__message {
+    color: #9a7c3f;
+    font-weight: 600;
+  }
+
+  @media screen and (max-width: 540px) {
+    .cart-progress-bar__label {
+      font-size: 0.65rem;
+    }
+    .cart-progress-bar__track {
+      margin-block-end: 2.5rem;
+    }
+  }
+{% endstylesheet %}
+
+<script>
+  (function () {
+    var roots = document.querySelectorAll('[data-cart-progress-bar]');
+    if (!roots.length) return;
+
+    var MAX = 4;
+    var MILESTONES = [
+      { count: 2, discount: 5 },
+      { count: 3, discount: 10 },
+      { count: 4, discount: 15 }
+    ];
+
+    function countSubscriptionItems(cart) {
+      if (!cart || !cart.items) return 0;
+      var total = 0;
+      cart.items.forEach(function (item) {
+        if (item.selling_plan_allocation) {
+          total += item.quantity || 0;
+        }
+      });
+      return total;
+    }
+
+    function render(root, subCount) {
+      var fill = root.querySelector('[data-progress-fill]');
+      var message = root.querySelector('[data-progress-message]');
+      var markers = root.querySelectorAll('.cart-progress-bar__marker');
+
+      var clamped = Math.min(subCount, MAX);
+      var percent = (clamped / MAX) * 100;
+      if (fill) fill.style.width = percent + '%';
+
+      markers.forEach(function (marker) {
+        var threshold = parseInt(marker.getAttribute('data-marker'), 10);
+        if (subCount >= threshold) {
+          // The "current" tier is the highest threshold reached; lower ones are unlocked.
+          var isActive = subCount < MAX
+            ? threshold === highestReached(subCount)
+            : threshold === MAX;
+          marker.setAttribute('data-state', isActive ? 'active' : 'unlocked');
+        } else {
+          marker.removeAttribute('data-state');
+        }
+      });
+
+      if (!message) return;
+
+      if (subCount >= MAX) {
+        root.setAttribute('data-state', 'maxed');
+        message.textContent = '🎉 Maximum discount unlocked! You’re saving 15%';
+        return;
+      }
+      root.removeAttribute('data-state');
+
+      var next = MILESTONES.find(function (m) { return subCount < m.count; });
+      if (!next) {
+        message.textContent = '';
+        return;
+      }
+      var remaining = next.count - subCount;
+      var noun = remaining === 1 ? 'subscription' : 'subscriptions';
+      message.textContent = 'Add ' + remaining + ' more ' + noun
+        + ' to unlock ' + next.discount + '% off';
+    }
+
+    function highestReached(subCount) {
+      var hit = 0;
+      MILESTONES.forEach(function (m) {
+        if (subCount >= m.count) hit = m.count;
+      });
+      return hit;
+    }
+
+    function refresh() {
+      fetch('/cart.js', { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (cart) {
+          if (!cart) return;
+          var subCount = countSubscriptionItems(cart);
+          roots.forEach(function (root) { render(root, subCount); });
+        })
+        .catch(function () { /* silent */ });
+    }
+
+    // Initial paint.
+    refresh();
+
+    // Listen for events emitted by common Shopify theme cart implementations.
+    [
+      'cart:updated',
+      'cart:update',
+      'cart:refresh',
+      'cart:change',
+      'cart:add'
+    ].forEach(function (evt) {
+      document.addEventListener(evt, refresh);
+      window.addEventListener(evt, refresh);
+    });
+
+    // Fallback: intercept cart API calls so we re-render even if no event fires.
+    var cartUrlRegex = /\/cart\/(add|change|update|clear)(\.js)?(\?|$)/;
+
+    var origFetch = window.fetch;
+    if (typeof origFetch === 'function') {
+      window.fetch = function (input, init) {
+        var url = typeof input === 'string' ? input : (input && input.url) || '';
+        var promise = origFetch.apply(this, arguments);
+        if (cartUrlRegex.test(url)) {
+          promise.then(function () { setTimeout(refresh, 50); }).catch(function () {});
+        }
+        return promise;
+      };
+    }
+
+    var origOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) {
+      this._cpb_url = url || '';
+      return origOpen.apply(this, arguments);
+    };
+    var origSend = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function () {
+      var self = this;
+      if (cartUrlRegex.test(self._cpb_url || '')) {
+        self.addEventListener('load', function () { setTimeout(refresh, 50); });
+      }
+      return origSend.apply(this, arguments);
+    };
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Cart Progress Bar",
+  "tag": "section",
+  "class": "cart-progress-bar-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "starting_message",
+      "label": "Starting message",
+      "default": "Add 2 subscriptions to unlock 5% off"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart Progress Bar"
+    }
+  ]
+}
+{% endschema %}

@@ -64,6 +64,12 @@
         "padding-block-end": 0
       }
     },
+    "cart_progress_bar": {
+      "type": "cart-progress-bar",
+      "settings": {
+        "starting_message": "Add 2 subscriptions to unlock 5% off"
+      }
+    },
     "section": {
       "type": "section",
       "blocks": {
@@ -339,6 +345,7 @@
   },
   "order": [
     "17791374670241207e",
+    "cart_progress_bar",
     "section",
     "main"
   ]

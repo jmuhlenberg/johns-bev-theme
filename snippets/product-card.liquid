@@ -107,6 +107,58 @@
     "
   >
     {{ children }}
+
+    {%- if product.selling_plan_groups != blank and onboarding == false -%}
+      {%- liquid
+        assign default_plan_id = product.selling_plan_groups.first.selling_plans.first.id
+      -%}
+      <div
+        class="product-card__subscription"
+        data-subscription-toggle
+        data-default-plan="{{ default_plan_id }}"
+      >
+        <div class="product-card__sub-options" role="radiogroup" aria-label="Purchase type">
+          <button
+            type="button"
+            class="product-card__sub-option"
+            data-sub-option="onetime"
+            role="radio"
+            aria-checked="true"
+            data-active="true"
+          >
+            One-time
+          </button>
+          <button
+            type="button"
+            class="product-card__sub-option"
+            data-sub-option="subscribe"
+            role="radio"
+            aria-checked="false"
+          >
+            Subscribe
+          </button>
+        </div>
+
+        <select
+          class="product-card__sub-frequency"
+          data-sub-frequency
+          aria-label="Subscription frequency"
+          hidden
+        >
+          {%- for group in product.selling_plan_groups -%}
+            {%- if product.selling_plan_groups.size > 1 -%}
+              <optgroup label="{{ group.name | escape }}">
+            {%- endif -%}
+            {%- for plan in group.selling_plans -%}
+              <option value="{{ plan.id }}">{{ plan.name | escape }}</option>
+            {%- endfor -%}
+            {%- if product.selling_plan_groups.size > 1 -%}
+              </optgroup>
+            {%- endif -%}
+          {%- endfor -%}
+        </select>
+      </div>
+    {%- endif -%}
   </div>
 </product-card>
 
@@ -120,4 +172,159 @@
       display: none;
     }
   }
+
+  .product-card__subscription {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-block-start: 0.4rem;
+    font-family: var(--font-body--family);
+  }
+
+  .product-card__sub-options {
+    display: inline-flex;
+    width: 100%;
+    background-color: #ece7d9;
+    border-radius: 999px;
+    padding: 3px;
+    box-sizing: border-box;
+  }
+
+  .product-card__sub-option {
+    flex: 1;
+    border: 0;
+    background: transparent;
+    color: #1a2340;
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    padding: 0.45rem 0.6rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+
+  .product-card__sub-option[data-active="true"] {
+    background-color: #9a7c3f;
+    color: #f5f0e8;
+  }
+
+  .product-card__sub-frequency {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: var(--font-body--family);
+    font-size: 0.8rem;
+    color: #1a2340;
+    background-color: #f5f0e8;
+    border: 1px solid #c7bfaa;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .product-card__sub-frequency[hidden] {
+    display: none;
+  }
 {% endstylesheet %}
+
+<script>
+  (function () {
+    if (window.__pcSubInit) return;
+    window.__pcSubInit = true;
+
+    var FORM_SELECTOR = 'form[action*="/cart/add"]';
+    var INPUT_NAME = 'selling_plan';
+
+    function findForm(toggleEl) {
+      // The buy-buttons block renders the cart form as a sibling inside the
+      // product-card content wrapper. Scope the lookup to this card only.
+      var card = toggleEl.closest('product-card') || toggleEl.parentElement;
+      return card ? card.querySelector(FORM_SELECTOR) : null;
+    }
+
+    function setSellingPlan(form, planId) {
+      if (!form) return;
+      var input = form.querySelector('input[name="' + INPUT_NAME + '"]');
+      if (planId) {
+        if (!input) {
+          input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = INPUT_NAME;
+          form.appendChild(input);
+        }
+        input.value = planId;
+      } else if (input) {
+        input.parentNode.removeChild(input);
+      }
+    }
+
+    function applyMode(toggle, mode) {
+      var options = toggle.querySelectorAll('[data-sub-option]');
+      options.forEach(function (opt) {
+        var isActive = opt.getAttribute('data-sub-option') === mode;
+        opt.setAttribute('data-active', isActive ? 'true' : 'false');
+        opt.setAttribute('aria-checked', isActive ? 'true' : 'false');
+      });
+
+      var freq = toggle.querySelector('[data-sub-frequency]');
+      var form = findForm(toggle);
+
+      if (mode === 'subscribe') {
+        if (freq) {
+          freq.hidden = false;
+          if (!freq.value) freq.value = toggle.getAttribute('data-default-plan') || '';
+          setSellingPlan(form, freq.value);
+        }
+      } else {
+        if (freq) freq.hidden = true;
+        setSellingPlan(form, null);
+      }
+    }
+
+    function init(toggle) {
+      if (toggle.__pcSubBound) return;
+      toggle.__pcSubBound = true;
+
+      var options = toggle.querySelectorAll('[data-sub-option]');
+      options.forEach(function (opt) {
+        opt.addEventListener('click', function () {
+          applyMode(toggle, opt.getAttribute('data-sub-option'));
+        });
+      });
+
+      var freq = toggle.querySelector('[data-sub-frequency]');
+      if (freq) {
+        freq.addEventListener('change', function () {
+          if (!freq.hidden) setSellingPlan(findForm(toggle), freq.value);
+        });
+      }
+
+      // Default state: one-time (no selling_plan).
+      applyMode(toggle, 'onetime');
+    }
+
+    function initAll(scope) {
+      (scope || document).querySelectorAll('[data-subscription-toggle]').forEach(init);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () { initAll(); });
+    } else {
+      initAll();
+    }
+
+    // Re-init when product cards are added (e.g. infinite scroll, filters).
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (m) {
+        m.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return;
+          if (node.matches && node.matches('[data-subscription-toggle]')) {
+            init(node);
+          } else if (node.querySelectorAll) {
+            initAll(node);
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  })();
+</script>
