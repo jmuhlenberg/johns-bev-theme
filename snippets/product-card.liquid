@@ -110,17 +110,64 @@
 
     {%- if product.selling_plan_groups != blank and onboarding == false -%}
       {%- liquid
-        assign default_plan_id = product.selling_plan_groups.first.selling_plans.first.id
+        assign target_numbers = '2,3,4,6' | split: ','
+        assign matched_ids = ''
+        assign matched_labels = ''
+        for n in target_numbers
+          assign found_plan_id = ''
+          assign pattern_a = ' ' | append: n | append: ' week'
+          assign pattern_b = n | append: '-week'
+          for group in product.selling_plan_groups
+            for plan in group.selling_plans
+              if found_plan_id == ''
+                assign haystack = ' ' | append: plan.name
+                for opt in plan.options
+                  assign haystack = haystack | append: ' ' | append: opt.value
+                endfor
+                assign haystack = haystack | downcase
+                if haystack contains pattern_a or haystack contains pattern_b
+                  assign found_plan_id = plan.id | append: ''
+                endif
+              endif
+            endfor
+          endfor
+          if found_plan_id != ''
+            assign matched_ids = matched_ids | append: found_plan_id | append: '|'
+            assign matched_labels = matched_labels | append: n | append: ' weeks|'
+          endif
+        endfor
+        assign matched_ids = matched_ids | split: '|'
+        assign matched_labels = matched_labels | split: '|'
+        assign default_plan_id = matched_ids.first
         assign initial_variant = product.selected_or_first_available_variant
       -%}
+      {%- if matched_ids.size > 0 -%}
       <div
         class="product-card__subscription"
         data-subscription-toggle
         data-product-id="{{ product.id }}"
         data-variant-id="{{ initial_variant.id }}"
         data-default-plan="{{ default_plan_id }}"
-        data-variant-available="{{ initial_variant.available }}"
+        data-variant-available="{% if initial_variant.available %}true{% else %}false{% endif %}"
       >
+        {%- if product.variants.size > 1 -%}
+          <select
+            class="product-card__variant-select"
+            data-variant-select
+            aria-label="Variant"
+          >
+            {%- for variant in product.variants -%}
+              <option
+                value="{{ variant.id }}"
+                data-available="{% if variant.available %}true{% else %}false{% endif %}"
+                {% if variant.id == initial_variant.id %}selected{% endif %}
+              >
+                {{ variant.title | escape }}{% unless variant.available %} - Sold Out{% endunless %}
+              </option>
+            {%- endfor -%}
+          </select>
+        {%- endif -%}
+
         <div class="product-card__sub-options" role="radiogroup" aria-label="Purchase type">
           <button
             type="button"
@@ -149,16 +196,8 @@
           aria-label="Subscription frequency"
           hidden
         >
-          {%- for group in product.selling_plan_groups -%}
-            {%- if product.selling_plan_groups.size > 1 -%}
-              <optgroup label="{{ group.name | escape }}">
-            {%- endif -%}
-            {%- for plan in group.selling_plans -%}
-              <option value="{{ plan.id }}">{{ plan.name | escape }}</option>
-            {%- endfor -%}
-            {%- if product.selling_plan_groups.size > 1 -%}
-              </optgroup>
-            {%- endif -%}
+          {%- for id in matched_ids -%}
+            <option value="{{ id }}">{{ matched_labels[forloop.index0] }}</option>
           {%- endfor -%}
         </select>
 
@@ -172,7 +211,7 @@
             {%- if initial_variant.available -%}
               Add to Cart
             {%- else -%}
-              {{ 'products.product.sold_out' | t | default: 'Sold out' }}
+              {{ 'products.product.sold_out' | t | default: 'Sold Out' }}
             {%- endif -%}
           </span>
         </button>
@@ -185,6 +224,7 @@
           hidden
         ></p>
       </div>
+      {%- endif -%}
     {%- endif -%}
   </div>
 </product-card>
@@ -236,6 +276,7 @@
     color: #f5f0e8;
   }
 
+  .product-card__variant-select,
   .product-card__sub-frequency {
     width: 100%;
     box-sizing: border-box;
@@ -356,7 +397,7 @@
       if (label && btn && btn.getAttribute('data-loading') !== 'true') {
         var available = toggle.getAttribute('data-variant-available') !== 'false';
         if (!available) {
-          label.textContent = 'Sold out';
+          label.textContent = 'Sold Out';
         } else {
           label.textContent = mode === 'subscribe' ? SUBSCRIBE_ADD_LABEL : DEFAULT_ADD_LABEL;
         }
@@ -473,6 +514,19 @@
       var btn = toggle.querySelector('[data-sub-add-to-cart]');
       if (btn) {
         btn.addEventListener('click', function () { addToCart(toggle); });
+      }
+
+      var variantSelect = toggle.querySelector('[data-variant-select]');
+      if (variantSelect) {
+        variantSelect.addEventListener('change', function () {
+          var opt = variantSelect.options[variantSelect.selectedIndex];
+          if (!opt) return;
+          toggle.setAttribute('data-variant-id', opt.value);
+          var available = opt.getAttribute('data-available') !== 'false';
+          toggle.setAttribute('data-variant-available', available ? 'true' : 'false');
+          if (btn) btn.disabled = !available;
+          applyMode(toggle, toggle.getAttribute('data-mode') || 'onetime');
+        });
       }
 
       // If the theme dispatches variant:update for swatch changes within this
