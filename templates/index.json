@@ -112,7 +112,7 @@
         "section_height_custom": 100,
         "color_scheme": "scheme-6",
         "toggle_overlay": false,
-        "overlay_color": "#ffffff00",
+        "overlay_color": "rgba(0,0,0,0)",
         "overlay_style": "solid",
         "gradient_direction": "to bottom",
         "blurred_reflection": false,
@@ -162,7 +162,7 @@
               "type": "_product-list-text",
               "name": "t:names.collection_title",
               "settings": {
-                "text": "<h3>Mornings</h3>",
+                "text": "<h3>Daytime</h3>",
                 "width": "fit-content",
                 "max_width": "normal",
                 "alignment": "left",
@@ -370,7 +370,7 @@
       "custom_css": [],
       "name": "Category Grid",
       "settings": {
-        "heading": "Nighttimes",
+        "heading": "Nighttime",
         "color_scheme": "scheme-1"
       }
     },
