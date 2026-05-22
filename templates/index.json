@@ -295,7 +295,8 @@
         }
       },
       "custom_css": [
-        "h3 {color: var(--color-foreground-heading);}"
+        "h3 {color: white}",
+        "body, p{color: white;}"
       ],
       "name": "t:names.products_carousel",
       "settings": {
@@ -312,10 +313,10 @@
         "icons_shape": "circle",
         "section_width": "page-width",
         "horizontal_alignment": "flex-start",
-        "gap": 28,
-        "color_scheme": "scheme-1",
-        "padding-block-start": 48,
-        "padding-block-end": 48
+        "gap": 24,
+        "color_scheme": "scheme-3",
+        "padding-block-start": 64,
+        "padding-block-end": 64
       }
     },
     "jla_category_grid": {
