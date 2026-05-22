@@ -163,20 +163,6 @@
             "label": "Wine",
             "link": "shopify://collections/wine"
           }
-        },
-        "cat_rtd": {
-          "type": "category_tile",
-          "settings": {
-            "label": "Ready to Drink",
-            "link": "shopify://collections/ready-to-drink"
-          }
-        },
-        "cat_na": {
-          "type": "category_tile",
-          "settings": {
-            "label": "Non-Alcoholic",
-            "link": "shopify://collections/non-alcoholic"
-          }
         }
       },
       "block_order": [
@@ -184,9 +170,7 @@
         "category_tile_LqqVR9",
         "cat_wine",
         "category_tile_HzBcXJ",
-        "cat_liquor",
-        "cat_rtd",
-        "cat_na"
+        "cat_liquor"
       ],
       "custom_css": [],
       "name": "Category Grid",
