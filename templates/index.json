@@ -294,7 +294,9 @@
           ]
         }
       },
-      "custom_css": [],
+      "custom_css": [
+        "h3{font-family: var(--jla-serif); font-size: clamp(1.5rem, 3vw, 2.5rem); font-weight: 700; letter-spacing: -.01em; line-height: 1.1; margin-block-end: 1.75rem;}"
+      ],
       "name": "t:names.products_carousel",
       "settings": {
         "collection": "coffee",
