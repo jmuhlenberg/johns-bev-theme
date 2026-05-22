@@ -127,22 +127,41 @@
         "cat_beer": {
           "type": "category_tile",
           "settings": {
+            "image": "shopify://shop_images/beer-collection.png",
             "label": "Beer",
-            "link": "shopify://collections/all-beer"
+            "link": "shopify://collections/beer"
+          }
+        },
+        "category_tile_LqqVR9": {
+          "type": "category_tile",
+          "settings": {
+            "image": "shopify://shop_images/liquor-collection.png",
+            "label": "Liquor",
+            "link": "shopify://collections/liquor"
           }
         },
         "cat_wine": {
           "type": "category_tile",
           "settings": {
-            "label": "Wine",
-            "link": "shopify://collections/all-wine"
+            "image": "shopify://shop_images/rtd-collection.png",
+            "label": "Ready to Drink",
+            "link": "shopify://collections/ready-to-drink"
+          }
+        },
+        "category_tile_HzBcXJ": {
+          "type": "category_tile",
+          "settings": {
+            "image": "shopify://shop_images/na-collection.png",
+            "label": "NA & Alternatives",
+            "link": "shopify://collections/n-a-alternatives"
           }
         },
         "cat_liquor": {
           "type": "category_tile",
           "settings": {
-            "label": "Liquor",
-            "link": "shopify://collections/liquor"
+            "image": "shopify://shop_images/wine-collection.png",
+            "label": "Wine",
+            "link": "shopify://collections/wine"
           }
         },
         "cat_rtd": {
@@ -162,7 +181,9 @@
       },
       "block_order": [
         "cat_beer",
+        "category_tile_LqqVR9",
         "cat_wine",
+        "category_tile_HzBcXJ",
         "cat_liquor",
         "cat_rtd",
         "cat_na"
