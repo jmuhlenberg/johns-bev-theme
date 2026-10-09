@@ -44,7 +44,8 @@
     <div style="padding:8px 16px;background:#fffbe6;border-bottom:1px solid #e5e0b8;font:14px system-ui">
       <strong>YMWS TEST</strong> · logged in as: {{ customer.email | default: 'guest (not logged in)' }} ·
       tags: [{{ customer.tags | join: ', ' }}] ·
-      link: {% render 'ymws-manage-subscriptions-link' %}
+      link: {% render 'ymws-manage-subscriptions-link' %} ·
+      path: {{  request.path }}
     </div>
     {% render 'skip-to-content-link', href: '#MainContent', text: 'accessibility.skip_to_text' %}
     <div id="header-group">
