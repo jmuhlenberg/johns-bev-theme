@@ -1,1 +1,54 @@
-pbcopy < "/Users/johnmuhlenberg/Documents/Recharge/Z - Test Stores/johns-bev/prepaid-subscriber-portal-carousel/ymws-wholesale-poc/deliverables/shopify-liquid-snippet/ymws-manage-subscriptions-link.liquid"
+{%- comment -%}
+  ymws-manage-subscriptions-link.liquid
+  Yerba Madre Wholesale ‚Äî tag-gated "Manage My Subscriptions" link
+
+  WHAT IT DOES
+    Prints a link to the Recharge customer portal ONLY when the logged-in customer currently has the
+    Shopify customer tag `wholesale-approved`. Guests, customers without the tag, and customers carrying only
+    the other store tags (wholesale-pending, wholesale-rejected, tier-standard) see nothing.
+
+  WHY IT IS "LIVE"
+    Liquid's `customer` object is built by Shopify on every request for a logged-in customer. Nothing here is
+    cached or stored. The moment the tag is removed in Shopify admin, the very next page load no longer shows
+    the link.
+
+  WHAT IT DOES NOT DO
+    It only controls whether this LINK is shown. It does not secure the portal itself (the portal URL stays
+    reachable) and it does not touch subscriptions. Renewals and portal edits are protected by the Recharge
+    quantity-guard extension and the server-side safety net. It reads tags only; it never writes to the
+    customer record, so no tag can be removed or overwritten by it.
+
+  USAGE (anywhere in the theme where `customer` is available)
+    {% render 'ymws-manage-subscriptions-link' %}
+
+    Optional overrides:
+    {% render 'ymws-manage-subscriptions-link',
+         link_text: 'Manage My Subscriptions',
+         portal_url: '/tools/recurring/login',
+         css_class: 'button button--secondary' %}
+
+  CONFIRM BEFORE GO-LIVE
+    `portal_url` defaults to Recharge's standard entry point (/tools/recurring/login), which Recharge redirects to
+    the current portal location. Click it as an approved test customer and confirm it lands in the portal.
+{%- endcomment -%}
+{%- liquid
+  assign ymws_approval_tag = 'wholesale-approved'
+  assign ymws_link_text = link_text | default: 'Manage My Subscriptions'
+  assign ymws_portal_url = portal_url | default: '/tools/recurring/login'
+  assign ymws_css_class = css_class | default: 'ymws-manage-subscriptions'
+
+  # Tag match is exact on the tag name, ignoring letter case and stray spaces (Shopify treats tags case-insensitively).
+  assign ymws_approved = false
+  if customer
+    for ymws_tag in customer.tags
+      assign ymws_tag_normalized = ymws_tag | strip | downcase
+      if ymws_tag_normalized == ymws_approval_tag
+        assign ymws_approved = true
+        break
+      endif
+    endfor
+  endif
+-%}
+{%- if ymws_approved -%}
+  <a class="{{ ymws_css_class | escape }}" href="{{ ymws_portal_url | escape }}">{{ ymws_link_text | escape }}</a>
+{%- endif -%}
