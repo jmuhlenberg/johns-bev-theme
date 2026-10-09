@@ -1,0 +1,74 @@
+{%- comment -%}
+  ymws-portal-gate.liquid
+  Yerba Madre Wholesale ‚Äî tag gate for the Recharge Affinity portal pages
+
+  WHAT IT DOES
+    The embedded Recharge Affinity portal renders INSIDE the theme layout (its pages live under
+    /tools/recurring/portal/...). This snippet outputs a "not approved" notice ‚Äî and nothing else ‚Äî when the visitor is
+    a LOGGED-IN customer who does NOT currently have the Shopify tag `wholesale-approved`. The theme layout then shows
+    that notice INSTEAD of the portal content, so the portal's markup and scripts are never sent to that customer.
+    This closes every entry point at once (the account-menu "Subscriptions" item, the tag-gated link, a bookmarked URL),
+    including the Recharge menu item that Liquid cannot hide.
+
+  HOW IT IS WIRED (3 lines in layout/theme.liquid, around {{ content_for_layout }})
+    {%- capture ymws_gate -%}{% render 'ymws-portal-gate' %}{%- endcapture -%}
+    {%- if ymws_gate contains 'data-ymws-blocked' -%}
+      {{ ymws_gate }}
+    {%- else -%}
+      {{ content_for_layout }}
+    {%- endif -%}
+
+  WHAT IT DECIDES
+    - Not on a portal URL                       -> prints nothing (storefront pages are untouched)
+    - Logged-in customer WITH wholesale-approved -> prints nothing (portal loads normally)
+    - Logged-in customer WITHOUT the tag         -> prints the notice (portal content is suppressed)
+    - Guest (no `customer`)                      -> prints nothing. See LIMITATION.
+    Live at render time: nothing is cached; remove the tag and the next page load is blocked.
+
+  LIMITATION (important)
+    Liquid can only judge a visitor Shopify has logged in. A visitor holding a Recharge email "manage subscription" link
+    with a token, but NOT logged in to the storefront, has no `customer`, so this gate cannot tell who they are and lets
+    them through (blocking them would also break legitimate approved customers using those email links). Renewals and
+    portal edits for such visitors are still protected by the Recharge quantity-guard extension and the server-side
+    safety net. This is a display control like the theme's own page gating, not a security boundary.
+
+  Read-only: reads tags, never writes to the customer record.
+
+  Optional parameters:
+    {% render 'ymws-portal-gate', portal_path: '/tools/recurring/portal', home_url: '/', message: 'Your account must be approved ...' %}
+{%- endcomment -%}
+{%- liquid
+  assign ymws_approval_tag = 'wholesale-approved'
+  assign ymws_portal_path = portal_path | default: '/tools/recurring/portal'
+  assign ymws_home_url = home_url | default: '/'
+  assign ymws_notice = message | default: 'Your account must be approved for wholesale to manage subscriptions.'
+
+  assign ymws_is_portal = false
+  if request.path contains ymws_portal_path
+    assign ymws_is_portal = true
+  endif
+
+  # Exact tag name, ignoring letter case and stray spaces (Shopify treats tags case-insensitively).
+  assign ymws_approved = false
+  if customer
+    for ymws_tag in customer.tags
+      assign ymws_tag_normalized = ymws_tag | strip | downcase
+      if ymws_tag_normalized == ymws_approval_tag
+        assign ymws_approved = true
+        break
+      endif
+    endfor
+  endif
+
+  # Block ONLY when we positively know the visitor is a logged-in customer who lacks the tag.
+  assign ymws_block = false
+  if ymws_is_portal and customer and ymws_approved == false
+    assign ymws_block = true
+  endif
+-%}
+{%- if ymws_block -%}
+  <div id="ymws-portal-blocked" data-ymws-blocked role="alert" style="max-width:640px;margin:64px auto;padding:0 16px;text-align:center;">
+    <p style="font-size:1.125rem;line-height:1.5;">{{ ymws_notice | escape }}</p>
+    <p><a href="{{ ymws_home_url | escape }}">Return to the store</a></p>
+  </div>
+{%- endif -%}
