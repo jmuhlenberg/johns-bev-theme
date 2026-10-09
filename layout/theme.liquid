@@ -127,7 +127,12 @@
       data-product-transition="{{ settings.transition_to_main_product }}"
       data-template="{{ template }}"
     >
-      {{ content_for_layout }}
+      {%- capture ymws_gate -%}{% render 'ymws-portal-gate' %}{%- endcapture -%}
+{%- if ymws_gate contains 'data-ymws-blocked' -%}
+  {{ ymws_gate }}
+{%- else -%}
+  {{ content_for_layout }}
+{%- endif -%}
     </main>
 
     <footer>
