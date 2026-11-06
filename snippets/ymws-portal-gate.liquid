@@ -36,7 +36,7 @@
 
   Optional parameters:
     {% render 'ymws-portal-gate', portal_path: '/tools/recurring/portal', home_url: '/', message: 'Your account must be approved ...' %}
-{%- endcomment -%}
+---------------------------------------
 {%- liquid
   assign ymws_approval_tag = 'wholesale-approved'
   assign ymws_portal_path = portal_path | default: '/tools/recurring/portal'
@@ -72,3 +72,4 @@
     <p><a href="{{ ymws_home_url | escape }}">Return to the store</a></p>
   </div>
 {%- endif -%}
+{%- endcomment -%}
